@@ -8,6 +8,9 @@ export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({ unique: true })
+    walletAddress: string;
+
     @Column()
     password: string;
 
@@ -20,7 +23,7 @@ export class User {
     @Column({ nullable: true })
     avatar: string;
 
-    @Column({ unique: true })
+    @Column()
     email: string;
 
     @CreateDateColumn({ default: () => 'CURRENT_TIMESTAMP' })

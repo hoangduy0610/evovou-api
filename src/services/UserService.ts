@@ -34,8 +34,8 @@ export class UserService {
     }
 
     async create(dto: User_CreateDto): Promise<User> {
-        const { email, password, name, role } = dto;
-        const user = await this.userRepository.findOne({ where: { email: email }, withDeleted: false });
+        const { walletAddress, password, name, role } = dto;
+        const user = await this.userRepository.findOne({ where: { walletAddress: walletAddress }, withDeleted: false });
         if (user) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, MessageCode.USER_ALREADY_EXISTED);
         }
@@ -43,7 +43,7 @@ export class UserService {
         try {
             const hash = bcrypt.hashSync(password, Constant.BCRYPT_ROUND);
             const res = await this.userRepository.create({
-                email: email,
+                walletAddress: walletAddress,
                 password: hash,
                 role: role,
                 name: name,

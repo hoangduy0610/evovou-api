@@ -22,8 +22,8 @@ export class AuthService {
     }
 
     async register(dto: Auth_RegiserDto): Promise<UserModal> {
-        const { email, password, name } = dto;
-        const user = await this.userRepository.findOne({ where: { email: email }, withDeleted: false });
+        const { walletAddress, password, name } = dto;
+        const user = await this.userRepository.findOne({ where: { walletAddress: walletAddress }, withDeleted: false });
         if (user) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, MessageCode.USER_ALREADY_EXISTED);
         }
@@ -31,7 +31,7 @@ export class AuthService {
         try {
             const hash = bcrypt.hashSync(password, Constant.BCRYPT_ROUND);
             const res = await this.userRepository.create({
-                email: email,
+                walletAddress: walletAddress,
                 password: hash,
                 role: EnumRoles.ROLE_USER,
                 name: name,
@@ -45,12 +45,19 @@ export class AuthService {
     }
 
     async login(userAuthDto: Auth_LoginDto): Promise<any> {
-        const safeEmail = StringUtils.xssPrevent(userAuthDto.email);
+        const safeWalletAddress = StringUtils.xssPrevent(userAuthDto.walletAddress);
         const safePassword = StringUtils.xssPrevent(userAuthDto.password);
-        const user = await this.userRepository.findOne({ where: { email: safeEmail }, withDeleted: false });
+        let user = await this.userRepository.findOne({ where: { walletAddress: safeWalletAddress }, withDeleted: false });
 
         if (!user) {
-            throw new ApplicationException(HttpStatus.NOT_FOUND, MessageCode.USER_NOT_REGISTER);
+            // throw new ApplicationException(HttpStatus.NOT_FOUND, MessageCode.USER_NOT_REGISTER);
+            user = await this.userRepository.create({
+                walletAddress: safeWalletAddress,
+                password: bcrypt.hashSync(safePassword, Constant.BCRYPT_ROUND),
+                role: EnumRoles.ROLE_USER,
+            })
+            await this.userRepository.save(user);
+            user = await this.userRepository.findOne({ where: { walletAddress: safeWalletAddress }, withDeleted: false });
         }
 
         if (!bcrypt.compareSync(safePassword, user.password)) {
@@ -62,6 +69,7 @@ export class AuthService {
         const JWT_Payload = {
             id: user.id,
             email: user.email,
+            walletAddress: user.walletAddress,
             role: user.role,
             name: user.name,
         }
