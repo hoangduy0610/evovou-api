@@ -22,8 +22,9 @@ export class AuthService {
     }
 
     async register(dto: Auth_RegiserDto): Promise<UserModal> {
-        const { walletAddress, password, name } = dto;
-        const user = await this.userRepository.findOne({ where: { walletAddress: walletAddress }, withDeleted: false });
+        const { walletAddress, password, name, email } = dto;
+        console.log(dto);
+        const user = await this.userRepository.findOne({ where: { email: email }, withDeleted: false });
         if (user) {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, MessageCode.USER_ALREADY_EXISTED);
         }
@@ -32,6 +33,7 @@ export class AuthService {
             const hash = bcrypt.hashSync(password, Constant.BCRYPT_ROUND);
             const res = await this.userRepository.create({
                 walletAddress: walletAddress,
+                email: email,
                 password: hash,
                 role: EnumRoles.ROLE_USER,
                 name: name,
@@ -45,19 +47,12 @@ export class AuthService {
     }
 
     async login(userAuthDto: Auth_LoginDto): Promise<any> {
-        const safeWalletAddress = StringUtils.xssPrevent(userAuthDto.walletAddress);
+        const email = StringUtils.xssPrevent(userAuthDto.email);
         const safePassword = StringUtils.xssPrevent(userAuthDto.password);
-        let user = await this.userRepository.findOne({ where: { walletAddress: safeWalletAddress }, withDeleted: false });
+        let user = await this.userRepository.findOne({ where: { email: email }, withDeleted: false });
 
         if (!user) {
-            // throw new ApplicationException(HttpStatus.NOT_FOUND, MessageCode.USER_NOT_REGISTER);
-            user = await this.userRepository.create({
-                walletAddress: safeWalletAddress,
-                password: bcrypt.hashSync(safePassword, Constant.BCRYPT_ROUND),
-                role: EnumRoles.ROLE_USER,
-            })
-            await this.userRepository.save(user);
-            user = await this.userRepository.findOne({ where: { walletAddress: safeWalletAddress }, withDeleted: false });
+            throw new ApplicationException(HttpStatus.NOT_FOUND, MessageCode.USER_NOT_REGISTER);
         }
 
         if (!bcrypt.compareSync(safePassword, user.password)) {

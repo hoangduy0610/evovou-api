@@ -7,4 +7,9 @@ export class Auth_RegiserDto extends Auth_LoginDto {
     @IsString({ message: "Name must be a string" })
     @IsNotEmpty()
     readonly name: string;
+
+    @ApiProperty({ type: String, required: true })
+    @IsString({ message: "Wallet address must be a string" })
+    @IsNotEmpty()
+    readonly walletAddress: string;
 }

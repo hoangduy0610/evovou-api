@@ -3,9 +3,9 @@ import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 export class Auth_LoginDto {
     @ApiProperty({ type: String, required: true, example: "hoangduy06104@gmail.com" })
-    @IsString({ message: "Wallet address must be a string" })
-    @IsNotEmpty({ message: "Wallet address is required" })
-    readonly walletAddress: string;
+    @IsString({ message: "Email must be a string" })
+    @IsNotEmpty({ message: "Email is required" })
+    readonly email: string;
 
     @ApiProperty({ type: String, required: true })
     @IsString({ message: "Password must be a string" })
