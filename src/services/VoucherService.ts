@@ -50,7 +50,7 @@ export class VoucherService {
             "name": "Evovou Voucher " + amount + " VND",
             "symbol": "EVOVOU",
             "description": "Evovou Voucher NFT with amount: " + amount + " VND",
-            "image": "https://i.imgur.com/r81YKSM.png",
+            "image": "https://i.imgur.com/G9aajG5.png",
             "animation_url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExZDNrcmdrbzhhZm41cnZjaWJxZzk3cXgzdDk2dmltcXdqcHQ2OTY1ZSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rPbVaGPnheoQ2dFkND/giphy.gif",
             "external_url": "https://evovou.store",
             "attributes": [
@@ -70,7 +70,7 @@ export class VoucherService {
             "properties": {
                 "files": [
                     {
-                        "uri": "https://i.imgur.com/r81YKSM.png",
+                        "uri": "https://i.imgur.com/G9aajG5.png",
                         "type": "image/png"
                     }
                 ],
