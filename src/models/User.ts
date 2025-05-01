@@ -1,4 +1,4 @@
-import { User } from "@/entities/User.entity";
+import { User } from "@/entities";
 
 export class UserModal {
     id: number;

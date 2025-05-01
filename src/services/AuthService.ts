@@ -1,5 +1,5 @@
 import { Auth_RegiserDto } from '@/dtos/Auth_RegisterDto';
-import { User } from '@/entities/User.entity';
+import { User } from '@/entities';
 import { EnumRoles } from '@/enums/EnumRoles';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';

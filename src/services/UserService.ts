@@ -1,6 +1,6 @@
 
 import { User_CreateDto, User_UpdateDto } from '@/dtos/User_Dtos';
-import { User } from '@/entities/User.entity';
+import { User } from '@/entities';
 import { EnumRoles } from '@/enums/EnumRoles';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
