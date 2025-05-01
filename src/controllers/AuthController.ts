@@ -1,7 +1,8 @@
 import { Auth_RegiserDto } from '@/dtos/Auth_RegisterDto';
+import { AllowVendor } from '@/guards/AllowVendorDecorator';
 import { Body, Controller, Get, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Auth_LoginDto } from 'src/dtos/Auth_LoginDto';
 import { RoleGuard } from 'src/guards/RoleGuard';
 import { AuthService } from 'src/services/AuthService';
@@ -27,6 +28,8 @@ export class AuthController {
     @ApiOperation({ summary: 'Callback', description: 'Api callback' })
     @UseGuards(AuthGuard('jwt'), RoleGuard)
     @ApiBearerAuth()
+    @AllowVendor(true)
+    @ApiHeader({ name: 'vendor-id', description: 'Vendor Id' })
     async callback(@Req() req, @Res() res) {
         return res.status(HttpStatus.OK).json({ msg: "ok", data: req.user });
     }

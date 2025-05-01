@@ -1,5 +1,5 @@
 import { Auth_RegiserDto } from '@/dtos/Auth_RegisterDto';
-import { User } from '@/entities';
+import { User, VendorUser } from '@/entities';
 import { EnumRoles } from '@/enums/EnumRoles';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -17,6 +17,7 @@ const bcrypt = require('bcrypt');
 export class AuthService {
     constructor(
         @InjectRepository(User) private readonly userRepository: Repository<User>,
+        @InjectRepository(VendorUser) private readonly vendorUserRepository: Repository<VendorUser>,
         private readonly jwtService: JwtService
     ) {
     }
@@ -51,7 +52,12 @@ export class AuthService {
     async login(userAuthDto: Auth_LoginDto): Promise<any> {
         const email = StringUtils.xssPrevent(userAuthDto.email);
         const safePassword = StringUtils.xssPrevent(userAuthDto.password);
-        let user = await this.userRepository.findOne({ where: { email: email }, withDeleted: false });
+        const vendorId = userAuthDto.vendorId ? userAuthDto.vendorId : null;
+
+        let user: User | VendorUser =
+            vendorId
+                ? await this.vendorUserRepository.findOne({ where: { email: email, vendorId: vendorId }, withDeleted: false })
+                : await this.userRepository.findOne({ where: { email: email }, withDeleted: false });
 
         if (!user) {
             throw new ApplicationException(HttpStatus.NOT_FOUND, MessageCode.USER_NOT_REGISTER);
@@ -63,23 +69,42 @@ export class AuthService {
 
         const userData = new UserModal(user);
 
+        if (vendorId) {
+            userData.fromVendorUser(user as VendorUser);
+        } else {
+            userData.fromUser(user as User);
+        }
+
         const JWT_Payload = {
-            id: user.id,
-            email: user.email,
-            walletAddress: user.walletAddress,
-            role: user.role,
-            name: user.name,
+            id: userData.id,
+            email: userData.email,
+            walletAddress: userData.walletAddress,
+            vendorId: userData.vendorId,
+            balance: userData.balance,
+            avatar: userData.avatar,
+            role: userData.role,
+            name: userData.name,
+            isVendor: Boolean(vendorId),
         }
 
         try {
             const JWT = this.jwtService.sign(JWT_Payload);
-            return { token: JWT, info: userData };
+            return { token: JWT, info: JWT_Payload };
         } catch (e) {
             throw new ApplicationException(HttpStatus.UNAUTHORIZED, MessageCode.USER_PASSWORD_WRONG)
         }
     }
 
-    async validateUser(payload: any): Promise<User> {
-        return await this.userRepository.findOne({ where: { id: payload.id }, withDeleted: false });
+    async validateUser(payload: any): Promise<any> {
+        const res = {
+            ...payload,
+            ...(await this.userRepository.findOne({ where: { id: payload.id }, withDeleted: false }))
+        };
+
+        delete res.password;
+        delete res.iat;
+        delete res.exp;
+
+        return res;
     }
 }

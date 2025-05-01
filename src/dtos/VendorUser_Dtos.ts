@@ -31,16 +31,9 @@ export class VendorUser_CreateDto {
     })
     @IsString()
     email: string;
-
-    @ApiProperty({
-        description: "Vendor Id",
-        example: 1,
-    })
-    @IsNumber()
-    vendorId: number;
 }
 
-export class VendorUser_UpdateDto extends OmitType(VendorUser_CreateDto, ['password', 'vendorId'] as const) {
+export class VendorUser_UpdateDto extends OmitType(VendorUser_CreateDto, ['password'] as const) {
     @ApiPropertyOptional({
         description: "User avatar URL",
         example: "https://example.com/avatar.jpg",

@@ -7,6 +7,8 @@ import { envFiles } from './commons/Constant';
 import { FileModule } from './modules/FileModule';
 import { UserModule } from './modules/UserModule';
 import { VoucherModule } from './modules/VoucherModule';
+import { VendorModule } from './modules/VendorModule';
+import { VendorUserModule } from './modules/VendorUserModule';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { VoucherModule } from './modules/VoucherModule';
     AuthModule,
     UserModule,
     VoucherModule,
+    VendorModule,
+    VendorUserModule,
   ]
 })
 export class AppModule { }

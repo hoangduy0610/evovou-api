@@ -59,6 +59,6 @@ export class Vendor_CreateDto {
     howToUse: string;
 }
 
-export class Vendor_UpdateDto extends OmitType(Vendor_CreateDto, []) {
+export class Vendor_UpdateDto extends OmitType(Vendor_CreateDto, [] as const) {
 
 }

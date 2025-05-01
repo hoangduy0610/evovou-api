@@ -15,19 +15,19 @@ export class UserController {
     constructor(private readonly userService: UserService) { }
 
     @Get('/list')
-    @Role(EnumRoles.ROLE_ADMIN)
+    @Role([EnumRoles.ROLE_ADMIN])
     async findAll(@Req() req, @Res() res) {
         return res.status(HttpStatus.OK).json(await this.userService.findAll());
     }
 
     @Post('/')
-    @Role(EnumRoles.ROLE_ADMIN)
+    @Role([EnumRoles.ROLE_ADMIN])
     async create(@Req() req, @Res() res, @Body() dto: User_CreateDto) {
         return res.status(HttpStatus.OK).json(await this.userService.create(dto));
     }
 
     @Get('/:id')
-    @Role(EnumRoles.ROLE_ADMIN)
+    @Role([EnumRoles.ROLE_ADMIN])
     async findById(@Req() req, @Res() res, @Param('id') id: number) {
         return res.status(HttpStatus.OK).json(await this.userService.findOne(id));
     }
@@ -38,7 +38,7 @@ export class UserController {
     }
 
     @Delete('/:id')
-    @Role(EnumRoles.ROLE_ADMIN)
+    @Role([EnumRoles.ROLE_ADMIN])
     async delete(@Req() req, @Res() res, @Param('id') id: number) {
         return res.status(HttpStatus.OK).json(await this.userService.delete(id));
     }

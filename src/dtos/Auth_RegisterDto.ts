@@ -1,8 +1,8 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { Auth_LoginDto } from "./Auth_LoginDto";
+import { ApiProperty, OmitType } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
+import { Auth_LoginDto } from "./Auth_LoginDto";
 
-export class Auth_RegiserDto extends Auth_LoginDto {
+export class Auth_RegiserDto extends OmitType(Auth_LoginDto, ['vendorId'] as const) {
     @ApiProperty({ type: String, required: true })
     @IsString({ message: "Name must be a string" })
     @IsNotEmpty()

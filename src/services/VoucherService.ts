@@ -1,4 +1,5 @@
 
+import { Constant, EEnvName } from '@/commons/Constant';
 import { ApplicationException } from '@/controllers/ExceptionController';
 import { User, Voucher, VoucherDenomination } from '@/entities';
 import { EnumVoucherStatus } from '@/enums/EnumVoucherStatus';
@@ -20,14 +21,14 @@ export class VoucherService implements OnModuleInit {
         @InjectRepository(VoucherDenomination) private readonly voucherDenominationRepository: Repository<VoucherDenomination>,
         @InjectRepository(User) private readonly userRepository: Repository<User>,
     ) {
-        const contractAddress = "0x0B021C6d74F2572e09Ea9a626e58A7b288ed1587";
+        const contractAddress = Constant.getEnv(EEnvName.NFT_CONTRACT_ADDRESS);
         const contractABI = [
             "event VoucherPurchased(address indexed buyer, uint256 indexed tokenId, uint256 amountETH, uint256 amountVND)",
             "event VoucherRedeemed(address indexed redeemer, uint256 indexed tokenId, uint256 amountETH, uint256 amountVND)",
             "event VoucherTransferred(uint256 tokenId, address from, address to)"
         ];
 
-        this.provider = new ethers.WebSocketProvider("wss://holesky.infura.io/ws/v3/d54f5b27db13442fa898a2b0d0b412c5");
+        this.provider = new ethers.WebSocketProvider(`wss://holesky.infura.io/ws/v3/${Constant.getEnv(EEnvName.INFURA_PROJECT_ID)}`);
         this.contract = new ethers.Contract(contractAddress, contractABI, this.provider);
     }
 
@@ -152,5 +153,14 @@ export class VoucherService implements OnModuleInit {
                 "category": "image"
             }
         }
+    }
+
+    async listAllVouchers() {
+        const vouchers = await this.voucherRepository.find({
+            relations: ["denomination", "owner"],
+            withDeleted: false
+        });
+
+        return vouchers;
     }
 }
