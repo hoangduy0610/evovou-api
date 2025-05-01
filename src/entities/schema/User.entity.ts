@@ -9,7 +9,7 @@ export class User extends BaseUser {
     @Column({ unique: true })
     walletAddress: string;
 
-    @Column()
+    @Column({ default: 0 })
     balance: number;
 
     @OneToMany(() => Voucher, (voucher) => voucher.owner)

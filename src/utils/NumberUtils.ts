@@ -1,4 +1,5 @@
-export function roundToNearestValue(value: number, nearestValues: number[]): number {
+export function roundToNearestValue(valueBI: BigInt, nearestValues: number[]): number {
+    const value = Number(valueBI);
     if (nearestValues.length === 0) {
         throw new Error("nearestValues array cannot be empty");
     }

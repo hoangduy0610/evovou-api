@@ -37,11 +37,13 @@ export class AuthService {
                 password: hash,
                 role: EnumRoles.ROLE_USER,
                 name: name,
+                balance: 0,
             })
             await this.userRepository.save(res);
 
             return new UserModal(res);
         } catch (error) {
+            Logger.error(error);
             throw new ApplicationException(HttpStatus.UNAUTHORIZED, MessageCode.USER_CREATE_ERROR);
         }
     }
