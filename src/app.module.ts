@@ -9,6 +9,9 @@ import { UserModule } from './modules/UserModule';
 import { VoucherModule } from './modules/VoucherModule';
 import { VendorModule } from './modules/VendorModule';
 import { VendorUserModule } from './modules/VendorUserModule';
+import { VendorVoucherDenominationModule } from './modules/VendorVoucherDenominationModule';
+import { VendorVoucherModule } from './modules/VendorVoucherModule';
+import { VoucherDenominationModule } from './modules/VoucherDenominationModule';
 
 @Module({
   imports: [
@@ -27,6 +30,9 @@ import { VendorUserModule } from './modules/VendorUserModule';
     VoucherModule,
     VendorModule,
     VendorUserModule,
+    VendorVoucherDenominationModule,
+    VendorVoucherModule,
+    VoucherDenominationModule,
   ]
 })
 export class AppModule { }

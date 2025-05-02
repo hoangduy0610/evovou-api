@@ -3,7 +3,6 @@ import { User_CreateDto, User_UpdateDto } from '@/dtos/User_Dtos';
 import { User } from '@/entities';
 import { EnumRoles } from '@/enums/EnumRoles';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Constant } from 'src/commons/Constant';
 import { MessageCode } from 'src/commons/MessageCode';
