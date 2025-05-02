@@ -6,17 +6,23 @@ export class VendorVoucher_CreateDto {
     @IsNumber({}, { message: "Denomination ID must be a number" })
     readonly denominationId: number;
 
-    @ApiProperty({ type: String, required: true, example: "owner123" })
-    @IsString({ message: "Owner ID must be a string" })
-    readonly ownerId: string;
+    @ApiProperty({ type: Number, required: true, example: 1 })
+    @IsString({ message: "Owner ID must be a number" })
+    readonly ownerId: number;
 
     @ApiProperty({ type: Date, required: true, example: "2023-12-31T23:59:59.000Z" })
     readonly expiredAt: Date;
-
-    @ApiProperty({ type: Number, required: true, example: 1 })
-    @IsNumber({}, { message: "Vendor ID must be a number" })
-    readonly vendorId: number;
 }
 
-export class VendorVoucher_UpdateDto extends OmitType(VendorVoucher_CreateDto, ['vendorId'] as const) {
+export class VendorVoucher_UpdateDto extends OmitType(VendorVoucher_CreateDto, [] as const) {
+}
+
+export class VendorVoucher_ExchangeDto {
+    @ApiProperty({ type: Number, required: true, example: 1 })
+    @IsNumber({}, { message: "Denomination ID must be a number" })
+    readonly denominationId: number;
+
+    @ApiProperty({ type: Number, required: true, example: 1 })
+    @IsString({ message: "Vendor ID must be a number" })
+    readonly vendorId: number;
 }

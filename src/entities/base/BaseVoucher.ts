@@ -8,7 +8,7 @@ export class BaseVoucher extends BaseSoftDelete {
     denominationId: number;
 
     @Column()
-    ownerId: string;
+    ownerId: number;
 
     @Column({ type: 'enum', enum: Object.values(EnumVoucherStatus), default: EnumVoucherStatus.READY })
     status: EnumVoucherStatus;

@@ -1,10 +1,9 @@
 
 import { Constant, EEnvName } from '@/commons/Constant';
-import { ApplicationException } from '@/controllers/ExceptionController';
 import { User, Voucher, VoucherDenomination } from '@/entities';
 import { EnumVoucherStatus } from '@/enums/EnumVoucherStatus';
 import { roundToNearestValue } from '@/utils/NumberUtils';
-import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ethers } from "ethers";
 import * as moment from 'moment';
@@ -58,67 +57,128 @@ export class VoucherService implements OnModuleInit {
     }
 
     private async handlePurchasedVoucher(buyer: string, tokenId: BigInt, amountETH: BigInt, amountVND: BigInt) {
-        const rounedVndValue = roundToNearestValue(amountVND, VoucherService.voucherValues);
-        const numberTokenId = Number(tokenId);
+        try {
+            const rounedVndValue = roundToNearestValue(amountVND, VoucherService.voucherValues);
+            const numberTokenId = Number(tokenId);
 
-        const voucherDenomination = await this.voucherDenominationRepository.findOne({
-            where: { value: rounedVndValue },
-            withDeleted: false
-        });
+            const voucherDenomination = await this.voucherDenominationRepository.findOne({
+                where: { value: rounedVndValue },
+                withDeleted: false
+            });
 
-        const voucher = await this.voucherRepository.create({
-            denominationId: voucherDenomination.id,
-            ownerId: buyer,
-            tokenId: numberTokenId,
-            status: EnumVoucherStatus.READY,
-            expiredAt: moment().add(30, 'days').toDate(),
-            redeemedAt: null,
-        })
+            if (!voucherDenomination) {
+                Logger.error(`Voucher denomination not found for value: ${rounedVndValue}`);
+                return;
+            }
 
-        await this.voucherRepository.save(voucher);
+            const buyerUser = await this.userRepository.findOne({
+                where: { walletAddress: buyer },
+                withDeleted: false
+            });
+
+            if (!buyerUser) {
+                Logger.error(`Buyer not found for address: ${buyer}`);
+                return;
+            }
+
+
+            const voucher = await this.voucherRepository.create({
+                denominationId: voucherDenomination.id,
+                ownerId: buyerUser.id,
+                tokenId: numberTokenId,
+                status: EnumVoucherStatus.READY,
+                expiredAt: moment().add(30, 'days').toDate(),
+                redeemedAt: null,
+            })
+
+            await this.voucherRepository.save(voucher);
+        } catch (error) {
+            Logger.error(`Error handling purchased voucher: ${error}`);
+        }
     }
 
     private async handleRedeemedVoucher(redeemer: string, tokenId: BigInt, amountETH: BigInt, amountVND: BigInt) {
-        const voucher = await this.voucherRepository.findOne({
-            where: { tokenId: Number(tokenId), ownerId: redeemer },
-            relations: ["denomination"],
-            withDeleted: false
-        });
+        try {
+            const redeemerUser = await this.userRepository.findOne({
+                where: { walletAddress: redeemer },
+                withDeleted: false
+            });
 
-        if (!voucher) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Voucher not found or not owned by redeemer.");
+            if (!redeemerUser) {
+                Logger.error(`Redeemer not found for address: ${redeemer}`);
+                return;
+            }
+
+            const voucher = await this.voucherRepository.findOne({
+                where: { tokenId: Number(tokenId), ownerId: redeemerUser.id },
+                relations: ["denomination"],
+                withDeleted: false
+            });
+
+            if (!voucher) {
+                Logger.error(`Voucher not found or not owned by redeemer: ${redeemer}`);
+                return;
+            }
+
+            const owner = await this.userRepository.findOne({
+                where: { walletAddress: redeemer },
+                withDeleted: false
+            });
+
+            if (!owner) {
+                Logger.error(`Owner not found for address: ${redeemer}`);
+                return;
+            }
+
+            voucher.status = EnumVoucherStatus.REDEEMED;
+            voucher.redeemedAt = new Date();
+
+            owner.balance += voucher.denomination.value;
+
+            await this.voucherRepository.save(voucher);
+            await this.userRepository.save(owner);
+        } catch (error) {
+            Logger.error(`Error handling redeemed voucher: ${error}`);
         }
-
-        const owner = await this.userRepository.findOne({
-            where: { walletAddress: redeemer },
-            withDeleted: false
-        });
-
-        if (!owner) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Owner not found.");
-        }
-
-        voucher.status = EnumVoucherStatus.REDEEMED;
-        voucher.redeemedAt = new Date();
-
-        owner.balance += voucher.denomination.value;
-
-        await this.voucherRepository.save(voucher);
-        await this.userRepository.save(owner);
     }
 
     private async handleTransferredVoucher(tokenId: BigInt, from: string, to: string) {
-        const voucher = await this.voucherRepository.findOne({
-            where: { tokenId: Number(tokenId), ownerId: from },
-            withDeleted: false
-        });
+        try {
+            const fromUser = await this.userRepository.findOne({
+                where: { walletAddress: from },
+                withDeleted: false
+            });
 
-        if (!voucher) {
-            throw new ApplicationException(HttpStatus.BAD_REQUEST, "Voucher not found or not owned by sender.");
+            if (!fromUser) {
+                Logger.error(`Sender not found for address: ${from}`);
+                return;
+            }
+
+            const toUser = await this.userRepository.findOne({
+                where: { walletAddress: to },
+                withDeleted: false
+            });
+
+            if (!toUser) {
+                Logger.error(`Receiver not found for address: ${to}`);
+                return;
+            }
+
+            const voucher = await this.voucherRepository.findOne({
+                where: { tokenId: Number(tokenId), ownerId: fromUser.id },
+                withDeleted: false
+            });
+
+            if (!voucher) {
+                Logger.error(`Voucher not found or not owned by sender: ${from}`);
+                return;
+            }
+
+            voucher.ownerId = toUser.id;
+            await this.voucherRepository.save(voucher);
+        } catch (error) {
+            Logger.error(`Error handling transferred voucher: ${error}`);
         }
-
-        voucher.ownerId = to;
-        await this.voucherRepository.save(voucher);
     }
 
     async getTokenUriJSON(amount: number) {

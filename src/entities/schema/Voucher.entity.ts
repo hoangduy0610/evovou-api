@@ -11,7 +11,7 @@ export class Voucher extends BaseVoucher {
     denomination: VoucherDenomination;
 
     @ManyToOne(() => User, (user) => user.vouchers)
-    @JoinColumn({ name: 'ownerId', referencedColumnName: 'walletAddress' })
+    @JoinColumn({ name: 'ownerId', referencedColumnName: 'id' })
     owner: User;
 
     @Column()
