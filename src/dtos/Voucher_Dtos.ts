@@ -1,5 +1,6 @@
-import { ApiProperty, OmitType } from "@nestjs/swagger";
-import { IsNumber, IsString } from "class-validator";
+import { BaseDenomination, User, Vendor } from "@/entities";
+import { EnumVoucherStatus } from "@/enums/EnumVoucherStatus";
+import { OmitType } from "@nestjs/swagger";
 
 
 // NOT IMPLEMENTED YET
@@ -17,4 +18,17 @@ export class Voucher_CreateDto {
 }
 
 export class Voucher_UpdateDto extends OmitType(Voucher_CreateDto, [] as const) {
+}
+
+export class Voucher_ResCommonVoucherDto {
+    denominationId: number;
+    ownerId: number;
+    status: EnumVoucherStatus;
+    expiredAt?: Date;
+    redeemedAt?: Date;
+    tokenId?: number;
+    denomination: BaseDenomination;
+    owner: User;
+    vendor?: Vendor;
+    code?: string;
 }

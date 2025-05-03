@@ -2,9 +2,9 @@ import { EnumRoles } from '@/enums/EnumRoles';
 import { Role } from '@/guards/RoleDecorator';
 import { RoleGuard } from '@/guards/RoleGuard';
 import { VoucherService } from '@/services/VoucherService';
-import { Controller, Get, HttpStatus, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpStatus, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('voucher')
 @Controller('voucher')
@@ -22,6 +22,16 @@ export class VoucherController {
     @Role([EnumRoles.ROLE_ADMIN])
     async getAll(@Req() req, @Res() res) {
         const vouchers = await this.voucherService.listAllVouchers();
+        return res.status(HttpStatus.OK).json(vouchers);
+    }
+
+    @Get('/my-vouchers')
+    @ApiBearerAuth()
+    @UseGuards(AuthGuard('jwt'), RoleGuard)
+    @Role([EnumRoles.ROLE_ADMIN, EnumRoles.ROLE_USER])
+    @ApiQuery({ name: 'brandId', required: false, type: Number })
+    async getMyVouchers(@Req() req, @Res() res, @Query('brandId') brandId?: number) {
+        const vouchers = await this.voucherService.getMyVouchers(req.user.id, brandId);
         return res.status(HttpStatus.OK).json(vouchers);
     }
 }

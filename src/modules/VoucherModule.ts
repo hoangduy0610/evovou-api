@@ -1,5 +1,5 @@
 import { VoucherController } from '@/controllers/VoucherController';
-import { User, Voucher, VoucherDenomination } from '@/entities';
+import { User, VendorVoucher, Voucher, VoucherDenomination } from '@/entities';
 import { VoucherService } from '@/services/VoucherService';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     imports: [
         TypeOrmModule.forFeature([
             Voucher,
+            VendorVoucher,
             VoucherDenomination,
             User,
         ])

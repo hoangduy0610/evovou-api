@@ -1,6 +1,7 @@
 
 import { Constant, EEnvName } from '@/commons/Constant';
-import { User, Voucher, VoucherDenomination } from '@/entities';
+import { Voucher_ResCommonVoucherDto } from '@/dtos/Voucher_Dtos';
+import { User, VendorVoucher, Voucher, VoucherDenomination } from '@/entities';
 import { EnumVoucherStatus } from '@/enums/EnumVoucherStatus';
 import { roundToNearestValue } from '@/utils/NumberUtils';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
@@ -17,6 +18,7 @@ export class VoucherService implements OnModuleInit {
     private provider: ethers.Provider;
     constructor(
         @InjectRepository(Voucher) private readonly voucherRepository: Repository<Voucher>,
+        @InjectRepository(VendorVoucher) private readonly vendorVoucherRepository: Repository<VendorVoucher>,
         @InjectRepository(VoucherDenomination) private readonly voucherDenominationRepository: Repository<VoucherDenomination>,
         @InjectRepository(User) private readonly userRepository: Repository<User>,
     ) {
@@ -222,5 +224,31 @@ export class VoucherService implements OnModuleInit {
         });
 
         return vouchers;
+    }
+
+    async getMyVouchers(userId: number, brandId?: number): Promise<Voucher_ResCommonVoucherDto[]> {
+        if (brandId) {
+            const vendorVouchers = await this.vendorVoucherRepository.find({
+                where: { vendorId: brandId, ownerId: userId },
+                relations: ["denomination", "owner"],
+                withDeleted: false
+            });
+
+            return vendorVouchers;
+        }
+
+        const vouchers = await this.voucherRepository.find({
+            where: { ownerId: userId },
+            relations: ["denomination", "owner"],
+            withDeleted: false
+        });
+
+        const vendorVouchers = await this.vendorVoucherRepository.find({
+            where: { ownerId: userId },
+            relations: ["denomination", "owner"],
+            withDeleted: false
+        });
+
+        return [...vouchers, ...vendorVouchers];
     }
 }
