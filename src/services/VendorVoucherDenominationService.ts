@@ -45,6 +45,7 @@ export class VendorVoucherDenominationService {
         }
 
         const vendorVoucherDenomination = await this.vendorVoucherDenominationRepository.create({
+            vendorId: vendorId,
             value: dto.value,
             name: dto.name,
         })

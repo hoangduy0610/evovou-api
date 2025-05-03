@@ -6,7 +6,7 @@ import { UserModal } from '@/models/User';
 import { StringUtils } from '@/utils/StringUtils';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import moment from 'moment';
+import * as moment from 'moment';
 import { MessageCode } from 'src/commons/MessageCode';
 import { ApplicationException } from 'src/controllers/ExceptionController';
 import { Repository } from 'typeorm';

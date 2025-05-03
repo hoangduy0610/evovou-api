@@ -23,6 +23,6 @@ export class VendorVoucher_ExchangeDto {
     readonly denominationId: number;
 
     @ApiProperty({ type: Number, required: true, example: 1 })
-    @IsString({ message: "Vendor ID must be a number" })
+    @IsNumber({}, { message: "Vendor ID must be a number" })
     readonly vendorId: number;
 }
