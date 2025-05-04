@@ -1,5 +1,7 @@
 import { Auth_RegiserDto } from '@/dtos/Auth_RegisterDto';
+import { EnumRoles } from '@/enums/EnumRoles';
 import { AllowVendor } from '@/guards/AllowVendorDecorator';
+import { Role } from '@/guards/RoleDecorator';
 import { Body, Controller, Get, HttpStatus, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -32,5 +34,14 @@ export class AuthController {
     @ApiHeader({ name: 'vendor-id', description: 'Vendor Id' })
     async callback(@Req() req, @Res() res) {
         return res.status(HttpStatus.OK).json({ msg: "ok", data: req.user });
+    }
+
+    @Get('/me')
+    @ApiOperation({ summary: 'Callback', description: 'Api callback' })
+    @UseGuards(AuthGuard('jwt'), RoleGuard)
+    @ApiBearerAuth()
+    @Role([EnumRoles.ROLE_ADMIN, EnumRoles.ROLE_USER])
+    async getMe(@Req() req, @Res() res) {
+        return res.status(HttpStatus.OK).json(await this.authService.getMe(req.user.id));
     }
 }

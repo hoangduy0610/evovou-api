@@ -95,6 +95,31 @@ export class AuthService {
         }
     }
 
+    async getMe(id: number): Promise<any> {
+
+        let user: User = await this.userRepository.findOne({ where: { id: id }, withDeleted: false });
+
+        if (!user) {
+            throw new ApplicationException(HttpStatus.NOT_FOUND, MessageCode.USER_NOT_REGISTER);
+        }
+        const userData = new UserModal(user);
+        userData.fromUser(user);
+
+        const JWT_Payload = {
+            id: userData.id,
+            email: userData.email,
+            walletAddress: userData.walletAddress,
+            vendorId: userData.vendorId,
+            balance: userData.balance,
+            avatar: userData.avatar,
+            role: userData.role,
+            name: userData.name,
+            isVendor: false,
+        }
+
+        return { info: JWT_Payload };
+    }
+
     async validateUser(payload: any): Promise<any> {
         const res = {
             ...payload,
