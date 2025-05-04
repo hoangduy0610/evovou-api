@@ -32,6 +32,22 @@ export class UserService {
         return user;
     }
 
+    async findByEmail(email: string): Promise<Pick<User, 'id' | 'email' | 'name' | 'walletAddress'>> {
+        const user = await this.userRepository.findOne({
+            where: { email: email },
+            withDeleted: false
+        });
+        if (!user) {
+            throw new ApplicationException(HttpStatus.BAD_REQUEST, MessageCode.USER_NOT_FOUND);
+        }
+        return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            walletAddress: user.walletAddress
+        };
+    }
+
     async create(dto: User_CreateDto): Promise<User> {
         const { walletAddress, password, name, role, email } = dto;
         const user = await this.userRepository.findOne({ where: { email: email }, withDeleted: false });

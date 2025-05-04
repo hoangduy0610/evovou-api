@@ -3,9 +3,9 @@ import { EnumRoles } from '@/enums/EnumRoles';
 import { Role } from '@/guards/RoleDecorator';
 import { RoleGuard } from '@/guards/RoleGuard';
 import { UserService } from '@/services/UserService';
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('user')
 @Controller('user')
@@ -24,6 +24,13 @@ export class UserController {
     @Role([EnumRoles.ROLE_ADMIN])
     async create(@Req() req, @Res() res, @Body() dto: User_CreateDto) {
         return res.status(HttpStatus.OK).json(await this.userService.create(dto));
+    }
+
+    @Get('/search-by-email')
+    @Role([EnumRoles.ROLE_ADMIN, EnumRoles.ROLE_USER])
+    @ApiQuery({ name: 'email', required: true, description: 'Email' })
+    async findByEmail(@Req() req, @Res() res, @Query('email') email: string) {
+        return res.status(HttpStatus.OK).json(await this.userService.findByEmail(email));
     }
 
     @Get('/:id')

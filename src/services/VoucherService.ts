@@ -230,7 +230,7 @@ export class VoucherService implements OnModuleInit {
         if (brandId) {
             const vendorVouchers = await this.vendorVoucherRepository.find({
                 where: { vendorId: brandId, ownerId: userId },
-                relations: ["denomination", "owner"],
+                relations: ["denomination", "owner", "vendor"],
                 withDeleted: false
             });
 
@@ -245,7 +245,7 @@ export class VoucherService implements OnModuleInit {
 
         const vendorVouchers = await this.vendorVoucherRepository.find({
             where: { ownerId: userId },
-            relations: ["denomination", "owner"],
+            relations: ["denomination", "owner", "vendor"],
             withDeleted: false
         });
 
