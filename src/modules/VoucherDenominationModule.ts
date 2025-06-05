@@ -1,7 +1,7 @@
 import { VoucherDenominationController } from '@/controllers/VoucherDenominationController';
-import { User, Vendor, VendorVoucher, Voucher, VoucherDenomination } from '@/entities';
+import { User, VendorVoucher, Voucher, VoucherDenomination } from '@/entities';
+import { BlockchainService } from '@/services/BlockchainService';
 import { VoucherDenominationService } from '@/services/VoucherDenominationService';
-import { VoucherService } from '@/services/VoucherService';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -17,7 +17,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     controllers: [VoucherDenominationController],
     providers: [
         VoucherDenominationService,
-        VoucherService,
+        BlockchainService,
     ],
 })
 export class VoucherDenominationModule { }

@@ -1,4 +1,3 @@
-
 import { VoucherDenomination_CreateDto, VoucherDenomination_UpdateDto } from '@/dtos/VoucherDenomination_Dtos';
 import { VoucherDenomination } from '@/entities';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
@@ -6,13 +5,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { MessageCode } from 'src/commons/MessageCode';
 import { ApplicationException } from 'src/controllers/ExceptionController';
 import { Repository } from 'typeorm';
-import { VoucherService } from './VoucherService';
+import { BlockchainService } from './BlockchainService';
 
 @Injectable()
 export class VoucherDenominationService {
     constructor(
         @InjectRepository(VoucherDenomination) private readonly voucherDenominationRepository: Repository<VoucherDenomination>,
-        @Inject() private voucherService: VoucherService,
+        @Inject() private blockchainService: BlockchainService,
     ) {
     }
 
@@ -44,7 +43,7 @@ export class VoucherDenominationService {
 
         try {
             const res = await this.voucherDenominationRepository.save(voucherDenomination);
-            await this.voucherService.syncVoucherDenominations();
+            await this.blockchainService.syncVoucherDenominations();
             return res;
         } catch (error) {
             throw new ApplicationException(HttpStatus.UNAUTHORIZED, MessageCode.VOUCHER_DENOMINATION_CREATE_ERROR);
@@ -63,7 +62,7 @@ export class VoucherDenominationService {
             voucherDenomination.updatedAt = new Date();
 
             const res = await this.voucherDenominationRepository.save(voucherDenomination);
-            await this.voucherService.syncVoucherDenominations();
+            await this.blockchainService.syncVoucherDenominations();
             return res;
         } catch (error) {
             throw new ApplicationException(HttpStatus.UNAUTHORIZED, MessageCode.VOUCHER_DENOMINATION_UPDATE_ERROR);
@@ -78,7 +77,7 @@ export class VoucherDenominationService {
 
         try {
             const res = await this.voucherDenominationRepository.softRemove(voucherDenomination);
-            await this.voucherService.syncVoucherDenominations();
+            await this.blockchainService.syncVoucherDenominations();
             return res;
         } catch (error) {
             throw new ApplicationException(HttpStatus.UNAUTHORIZED, MessageCode.VOUCHER_DENOMINATION_UPDATE_ERROR);

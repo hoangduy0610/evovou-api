@@ -3,6 +3,7 @@ export const envFiles = ['local.env', 'staging.env', 'production.env'];
 export enum EEnvName {
     NFT_CONTRACT_ADDRESS = 'NFT_CONTRACT_ADDRESS',
     WS_RPC_URL = 'WS_RPC_URL',
+    ADMIN_PRIVATE_KEY = 'ADMIN_PRIVATE_KEY',
 }
 
 export class Constant {
@@ -12,6 +13,8 @@ export class Constant {
                 return process.env.NFT_CONTRACT_ADDRESS;
             case EEnvName.WS_RPC_URL:
                 return process.env.WS_RPC_URL;
+            case EEnvName.ADMIN_PRIVATE_KEY:
+                return process.env.ADMIN_PRIVATE_KEY;
             default:
                 return '';
         }
