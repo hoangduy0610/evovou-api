@@ -12,6 +12,7 @@ import { VendorUserModule } from './modules/VendorUserModule';
 import { VendorVoucherDenominationModule } from './modules/VendorVoucherDenominationModule';
 import { VendorVoucherModule } from './modules/VendorVoucherModule';
 import { VoucherDenominationModule } from './modules/VoucherDenominationModule';
+import { GameModule } from './modules/GameModule';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { VoucherDenominationModule } from './modules/VoucherDenominationModule';
     FileModule,
     AuthModule,
     UserModule,
+    GameModule,
     VoucherModule,
     VendorModule,
     VendorUserModule,

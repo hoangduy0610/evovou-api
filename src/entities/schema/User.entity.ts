@@ -17,4 +17,10 @@ export class User extends BaseUser {
 
     @OneToMany(() => VendorVoucher, (voucher) => voucher.owner)
     vendorVouchers: VendorVoucher[];
+
+    @Column({ default: () => 'CURRENT_TIMESTAMP' })
+    lastUsedWheelOfFortune: Date;
+
+    @Column({ default: () => 'CURRENT_TIMESTAMP' })
+    lastUsedBlindBox: Date;
 }

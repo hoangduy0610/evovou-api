@@ -29,7 +29,7 @@ export class VoucherService implements OnModuleInit {
             "event VoucherTransferred(uint256 tokenId, address from, address to)"
         ];
 
-        this.provider = new ethers.WebSocketProvider(`wss://holesky.infura.io/ws/v3/${Constant.getEnv(EEnvName.INFURA_PROJECT_ID)}`);
+        this.provider = new ethers.WebSocketProvider(Constant.getEnv(EEnvName.WS_RPC_URL));
         this.contract = new ethers.Contract(contractAddress, contractABI, this.provider);
     }
 

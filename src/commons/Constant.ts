@@ -2,7 +2,7 @@ export const envFiles = ['local.env', 'staging.env', 'production.env'];
 
 export enum EEnvName {
     NFT_CONTRACT_ADDRESS = 'NFT_CONTRACT_ADDRESS',
-    INFURA_PROJECT_ID = 'INFURA_PROJECT_ID',
+    WS_RPC_URL = 'WS_RPC_URL',
 }
 
 export class Constant {
@@ -10,8 +10,8 @@ export class Constant {
         switch (name) {
             case EEnvName.NFT_CONTRACT_ADDRESS:
                 return process.env.NFT_CONTRACT_ADDRESS;
-            case EEnvName.INFURA_PROJECT_ID:
-                return process.env.INFURA_PROJECT_ID;
+            case EEnvName.WS_RPC_URL:
+                return process.env.WS_RPC_URL;
             default:
                 return '';
         }
