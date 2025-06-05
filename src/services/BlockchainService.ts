@@ -18,6 +18,9 @@ export class BlockchainService implements OnModuleInit {
     private contract: ethers.Contract;
     private adminWallet: ethers.Wallet;
 
+
+    private readonly EXCHANGE_RATE = 46760000; // 1 ETH = 46,760,000 VND
+
     constructor(
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         @InjectRepository(Voucher) private readonly voucherRepository: Repository<Voucher>,
@@ -53,6 +56,7 @@ export class BlockchainService implements OnModuleInit {
 
             const abi = [
                 "function purchaseVoucher(string tokenURI) payable external returns (uint256)",
+                "function generateVoucherToAddress(address recipient, string tokenURI, uint256 amountEth) external returns (uint256)",
                 "function redeemVoucher(uint256 tokenId) external",
                 "function getMyVouchers() view external returns (tuple(address owner, uint256 tokenId, uint256 amountEth, uint256 amountVnd)[])",
                 "function getVouchersOf(address user) view external returns (tuple(address owner, uint256 tokenId, uint256 amountEth, uint256 amountVnd)[])",
@@ -80,6 +84,45 @@ export class BlockchainService implements OnModuleInit {
             this.logger.log('Blockchain service initialized');
         } catch (error) {
             this.logger.error(`Failed to initialize blockchain service: ${error.message}`);
+        }
+    }
+
+    async generateVoucherToAddress(recipient: string, amountVnd: number): Promise<boolean> {
+        try {
+            const tokenURI = `https://api.evovou.store/voucher/token-uri/${amountVnd}`;
+            const amountEth = ethers.parseEther((amountVnd / this.EXCHANGE_RATE).toFixed(18));
+
+            const tx = await this.contract.generateVoucherToAddress(recipient, tokenURI, amountEth);
+            const receipt = await tx.wait();
+
+            return true;
+        } catch (error) {
+            this.logger.error(`Error generating voucher to address: ${error.message}`);
+            return false;
+        }
+    }
+
+    async redeemVoucher(tokenId: number): Promise<boolean> {
+        try {
+            const tx = await this.contract.redeemVoucher(tokenId);
+            const receipt = await tx.wait();
+
+            return true;
+        } catch (error) {
+            this.logger.error(`Error redeeming voucher: ${error.message}`);
+            return false;
+        }
+    }
+
+    async transferVoucher(tokenId: number, to: string): Promise<boolean> {
+        try {
+            const tx = await this.contract.transferVoucher(tokenId, to);
+            const receipt = await tx.wait();
+
+            return true;
+        } catch (error) {
+            this.logger.error(`Error transferring voucher: ${error.message}`);
+            return false;
         }
     }
 

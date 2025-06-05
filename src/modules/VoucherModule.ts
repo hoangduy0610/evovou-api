@@ -1,6 +1,7 @@
 import { VoucherController } from '@/controllers/VoucherController';
 import { User, VendorVoucher, Voucher, VoucherDenomination } from '@/entities';
 import { VoucherService } from '@/services/VoucherService';
+import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -11,7 +12,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
             VendorVoucher,
             VoucherDenomination,
             User,
-        ])
+        ]),
+        BullModule.registerQueue({
+            name: 'voucher',
+        })
     ],
     controllers: [VoucherController],
     providers: [

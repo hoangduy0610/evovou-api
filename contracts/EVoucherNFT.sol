@@ -43,38 +43,55 @@ contract EVoucherNFT is ERC721URIStorage, Ownable {
         tokenCounter = 0;
     }
 
-    function purchaseVoucher(string memory tokenURI)
-        public
-        payable
-        returns (uint256)
-    {
-        require(msg.value > 0, "Must send ETH to purchase voucher");
+    function _mintVoucher(
+        address recipient,
+        string memory tokenURI,
+        uint256 amountEth
+    ) internal returns (uint256) {
+        require(recipient != address(0), "Invalid recipient address");
+        require(amountEth > 0, "Amount must be greater than zero");
 
         uint256 newTokenId = tokenCounter;
         _setTokenURI(newTokenId, tokenURI);
-        _safeMint(msg.sender, newTokenId);
+        _safeMint(recipient, newTokenId);
 
-        uint256 valueVnd = (msg.value * EXCHANGE_RATE) / 1 ether;
+        uint256 valueVnd = (amountEth * EXCHANGE_RATE) / 1 ether;
 
         vouchers[newTokenId] = Voucher({
-            owner: msg.sender,
+            owner: recipient,
             tokenId: newTokenId,
-            amountEth: msg.value,
+            amountEth: amountEth,
             amountVnd: valueVnd
         });
-        addTokenToUser(msg.sender, newTokenId);
+        addTokenToUser(recipient, newTokenId);
 
-        emit VoucherPurchased(msg.sender, newTokenId, msg.value, valueVnd);
+        emit VoucherPurchased(recipient, newTokenId, amountEth, valueVnd);
 
         tokenCounter += 1;
         return newTokenId;
     }
 
+    function purchaseVoucher(string memory tokenURI)
+        public
+        payable
+        returns (uint256)
+    {
+        return _mintVoucher(msg.sender, tokenURI, msg.value);
+    }
+
+    function generateVoucherToAddress(
+        address recipient,
+        string memory tokenURI,
+        uint256 amountEth
+    ) public onlyOwner returns (uint256) {
+        return _mintVoucher(recipient, tokenURI, amountEth);
+    }
+
     function redeemVoucher(uint256 tokenId) public {
         // require(ownerOf(tokenId) == msg.sender, "You must own the voucher to redeem it");
         require(
-            vouchers[tokenId].owner == msg.sender,
-            "Caller is not the owner"
+            vouchers[tokenId].owner == msg.sender || msg.sender == owner(),
+            "Caller is not the owner or admin"
         );
 
         // Chuyển NFT về địa chỉ voucherReceiver hoặc burn tùy ý
@@ -93,7 +110,7 @@ contract EVoucherNFT is ERC721URIStorage, Ownable {
 
         delete vouchers[tokenId];
 
-        removeTokenFromUser(msg.sender, tokenId);
+        removeTokenFromUser(voucherRd.owner, tokenId);
     }
 
     function addTokenToUser(address addr, uint256 tokenId) internal {
@@ -171,18 +188,19 @@ contract EVoucherNFT is ERC721URIStorage, Ownable {
         // address owner = ownerOf(tokenId);
         // require(owner == msg.sender, "Caller is not the owner");
         require(
-            vouchers[tokenId].owner == msg.sender,
-            "Caller is not the owner"
+            vouchers[tokenId].owner == msg.sender || msg.sender == owner(),
+            "Caller is not the owner or admin"
         );
         require(to != address(0), "Invalid recipient");
 
-        safeTransferFrom(msg.sender, to, tokenId);
+        address from = vouchers[tokenId].owner;
+        safeTransferFrom(from, to, tokenId);
 
         // Cập nhật mapping voucher owner
         vouchers[tokenId].owner = to;
-        removeTokenFromUser(msg.sender, tokenId);
+        removeTokenFromUser(from, tokenId);
         addTokenToUser(to, tokenId);
 
-        emit VoucherTransferred(tokenId, msg.sender, to);
+        emit VoucherTransferred(tokenId, from, to);
     }
 }
