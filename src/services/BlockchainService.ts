@@ -1,5 +1,7 @@
 import { Constant, EEnvName } from '@/commons/Constant';
 import { User, Voucher, VoucherDenomination } from '@/entities';
+import { Order } from '@/entities/schema/Order.entity';
+import { EnumOrderStatus } from '@/enums/EnumOrderStatus';
 import { EnumVoucherStatus } from '@/enums/EnumVoucherStatus';
 import { roundToNearestValue } from '@/utils/NumberUtils';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
@@ -24,6 +26,7 @@ export class BlockchainService implements OnModuleInit {
     constructor(
         @InjectRepository(User) private readonly userRepository: Repository<User>,
         @InjectRepository(Voucher) private readonly voucherRepository: Repository<Voucher>,
+        @InjectRepository(Order) private readonly orderRepository: Repository<Order>,
         @InjectRepository(VoucherDenomination) private readonly voucherDenominationRepository: Repository<VoucherDenomination>
     ) { }
 
@@ -87,7 +90,7 @@ export class BlockchainService implements OnModuleInit {
         }
     }
 
-    async generateVoucherToAddress(recipient: string, amountVnd: number): Promise<boolean> {
+    async generateVoucherToAddress(orderId: number, recipient: string, amountVnd: number): Promise<boolean> {
         try {
             const tokenURI = `https://api.evovou.store/voucher/token-uri/${amountVnd}`;
             const amountEth = ethers.parseEther((amountVnd / this.EXCHANGE_RATE).toFixed(18));
@@ -95,6 +98,18 @@ export class BlockchainService implements OnModuleInit {
             const tx = await this.contract.generateVoucherToAddress(recipient, tokenURI, amountEth);
             const receipt = await tx.wait();
 
+            const order = await this.orderRepository.findOne({
+                where: { id: orderId },
+                withDeleted: false
+            });
+
+            if (!order) {
+                this.logger.error(`Order with ID ${orderId} not found`);
+                return false;
+            }
+
+            order.status = EnumOrderStatus.CLAIMED_VOUCHER;
+            await this.orderRepository.save(order);
             return true;
         } catch (error) {
             this.logger.error(`Error generating voucher to address: ${error.message}`);
@@ -169,44 +184,7 @@ export class BlockchainService implements OnModuleInit {
 
     private async handleRedeemedVoucher(redeemer: string, tokenId: BigInt, amountETH: BigInt, amountVND: BigInt) {
         try {
-            const redeemerUser = await this.userRepository.findOne({
-                where: { walletAddress: redeemer },
-                withDeleted: false
-            });
-
-            if (!redeemerUser) {
-                Logger.error(`Redeemer not found for address: ${redeemer}`);
-                return;
-            }
-
-            const voucher = await this.voucherRepository.findOne({
-                where: { tokenId: Number(tokenId), ownerId: redeemerUser.id },
-                relations: ["denomination"],
-                withDeleted: false
-            });
-
-            if (!voucher) {
-                Logger.error(`Voucher not found or not owned by redeemer: ${redeemer}`);
-                return;
-            }
-
-            const owner = await this.userRepository.findOne({
-                where: { walletAddress: redeemer },
-                withDeleted: false
-            });
-
-            if (!owner) {
-                Logger.error(`Owner not found for address: ${redeemer}`);
-                return;
-            }
-
-            voucher.status = EnumVoucherStatus.REDEEMED;
-            voucher.redeemedAt = new Date();
-
-            owner.balance += voucher.denomination.value;
-
-            await this.voucherRepository.save(voucher);
-            await this.userRepository.save(owner);
+            Logger.log(`Voucher redeemed: ${redeemer}, Token ID: ${tokenId}, Amount ETH: ${amountETH}, Amount VND: ${amountVND}`);
         } catch (error) {
             Logger.error(`Error handling redeemed voucher: ${error}`);
         }
@@ -214,38 +192,7 @@ export class BlockchainService implements OnModuleInit {
 
     private async handleTransferredVoucher(tokenId: BigInt, from: string, to: string) {
         try {
-            const fromUser = await this.userRepository.findOne({
-                where: { walletAddress: from },
-                withDeleted: false
-            });
-
-            if (!fromUser) {
-                Logger.error(`Sender not found for address: ${from}`);
-                return;
-            }
-
-            const toUser = await this.userRepository.findOne({
-                where: { walletAddress: to },
-                withDeleted: false
-            });
-
-            if (!toUser) {
-                Logger.error(`Receiver not found for address: ${to}`);
-                return;
-            }
-
-            const voucher = await this.voucherRepository.findOne({
-                where: { tokenId: Number(tokenId), ownerId: fromUser.id },
-                withDeleted: false
-            });
-
-            if (!voucher) {
-                Logger.error(`Voucher not found or not owned by sender: ${from}`);
-                return;
-            }
-
-            voucher.ownerId = toUser.id;
-            await this.voucherRepository.save(voucher);
+            Logger.log(`Voucher transferred: Token ID: ${tokenId}, From: ${from}, To: ${to}`);
         } catch (error) {
             Logger.error(`Error handling transferred voucher: ${error}`);
         }

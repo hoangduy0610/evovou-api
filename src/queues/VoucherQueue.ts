@@ -9,10 +9,11 @@ export class VoucherQueue {
     ) { }
 
     @Process('buy')
-    async buyVoucher(job: Job<{ toWalletAddress: string, amountVnd: number }>) {
+    async buyVoucher(job: Job<{ orderId: number, toWalletAddress: string, amountVnd: number }>) {
         const { data } = job;
-        const { toWalletAddress, amountVnd } = data;
+        const { toWalletAddress, amountVnd, orderId } = data;
         await this.blockchainService.generateVoucherToAddress(
+            orderId,
             toWalletAddress,
             amountVnd
         );

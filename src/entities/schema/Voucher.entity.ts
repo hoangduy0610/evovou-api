@@ -1,8 +1,9 @@
 
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseVoucher } from '../base';
 import { User } from './User.entity';
 import { VoucherDenomination } from './VoucherDenomination.entity';
+import { ForumPost } from './Forum.entity';
 
 @Entity()
 export class Voucher extends BaseVoucher {
@@ -16,4 +17,7 @@ export class Voucher extends BaseVoucher {
 
     @Column()
     tokenId: number;
+
+    @OneToMany(() => ForumPost, (forumPost) => forumPost.voucher, { nullable: true })
+    forumPosts: ForumPost[];
 }

@@ -14,6 +14,8 @@ import { VendorVoucherDenominationModule } from './modules/VendorVoucherDenomina
 import { VendorVoucherModule } from './modules/VendorVoucherModule';
 import { VoucherDenominationModule } from './modules/VoucherDenominationModule';
 import { VoucherModule } from './modules/VoucherModule';
+import { ForumModule } from './modules/ForumModule';
+import { VNPayModule } from './modules/VNPayModule';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { VoucherModule } from './modules/VoucherModule';
     VendorVoucherDenominationModule,
     VendorVoucherModule,
     VoucherDenominationModule,
+    ForumModule,
+    VNPayModule,
   ]
 })
 export class AppModule { }

@@ -1,0 +1,6 @@
+export enum EnumOrderStatus {
+    PENDING = 'PENDING',
+    COMPLETED = 'COMPLETED',
+    CLAIMED_VOUCHER = 'CLAIMED_VOUCHER',
+    FAILED = 'FAILED',
+}
