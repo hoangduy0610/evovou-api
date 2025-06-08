@@ -4,7 +4,7 @@ import { RoleGuard } from '@/guards/RoleGuard';
 import { VoucherService } from '@/services/VoucherService';
 import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('voucher')
 @Controller('voucher')
@@ -46,6 +46,17 @@ export class VoucherController {
     @Post('/transfer')
     @ApiBearerAuth()
     @UseGuards(AuthGuard('jwt'), RoleGuard)
+    @ApiBody({
+        description: 'Transfer a voucher to another user',
+        schema: {
+            type: 'object',
+            properties: {
+                voucherId: { type: 'number', description: 'ID of the voucher to transfer' },
+                recipientId: { type: 'number', description: 'ID of the user to receive the voucher' }
+            },
+            required: ['voucherId', 'recipientId']
+        }
+    })
     @Role([EnumRoles.ROLE_ADMIN, EnumRoles.ROLE_USER])
     async transferVoucher(@Req() req, @Res() res, @Body() dto: { voucherId: number, recipientId: number }) {
         return res.status(HttpStatus.OK).json(await this.voucherService.transferVoucher(dto.voucherId, req.user.id, dto.recipientId));

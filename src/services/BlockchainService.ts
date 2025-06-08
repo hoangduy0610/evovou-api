@@ -7,7 +7,7 @@ import { roundToNearestValue } from '@/utils/NumberUtils';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ethers } from 'ethers';
-import moment from 'moment';
+import * as moment from 'moment';
 import { Repository } from 'typeorm';
 
 @Injectable()

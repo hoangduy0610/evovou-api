@@ -2,7 +2,7 @@ import { User } from '@/entities';
 import { EnumGamePrizes } from '@/enums/EnumGamePrizes';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import moment from 'moment';
+import * as moment from 'moment';
 import { Repository } from 'typeorm';
 
 @Injectable()
