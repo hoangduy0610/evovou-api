@@ -3,6 +3,7 @@ import { ApplicationException } from '@/controllers/ExceptionController';
 import { User, VoucherDenomination } from '@/entities';
 import { Order } from '@/entities/schema/Order.entity';
 import { EnumOrderStatus } from '@/enums/EnumOrderStatus';
+import { EnumPaymentMethod } from '@/enums/EnumPaymentMethod';
 import { StringUtils } from '@/utils/StringUtils';
 import { InjectQueue } from '@nestjs/bull';
 import { HttpStatus, Injectable } from '@nestjs/common';
@@ -27,6 +28,7 @@ export class VNPayService {
         userId: number,
         ipAddr: string,
         denominationId: number,
+        paymentMethod?: EnumPaymentMethod,
     ) {
         const user = await this.userRepository.findOne({
             where: { id: userId },
@@ -65,6 +67,7 @@ export class VNPayService {
             vnp_Locale: VnpLocale.VN, // 'vn' hoặc 'en'
             vnp_CreateDate: dateFormat(new Date()), // tùy chọn, mặc định là thời gian hiện tại
             vnp_ExpireDate: dateFormat(expiredAt), // tùy chọn
+            vnp_BankCode: paymentMethod,
         });
 
         const order = this.orderRepository.create({
