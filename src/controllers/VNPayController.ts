@@ -31,4 +31,9 @@ export class VNPayController {
     async handleIPN(@Req() req, @Res() res) {
         return await this.vnpayService.handleIPN(req, res);
     }
+
+    @Get('return')
+    async verifyReturnUrl(@Req() req, @Res() res) {
+        return await this.vnpayService.verifyReturnUrl(req, res);
+    }
 }

@@ -6,9 +6,10 @@ import { EnumOrderStatus } from '@/enums/EnumOrderStatus';
 import { EnumPaymentMethod } from '@/enums/EnumPaymentMethod';
 import { StringUtils } from '@/utils/StringUtils';
 import { InjectQueue } from '@nestjs/bull';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
+import { console } from 'inspector';
 import * as moment from 'moment';
 import { VnpayService } from 'nestjs-vnpay';
 import { Repository } from 'typeorm';
@@ -16,6 +17,7 @@ import { InpOrderAlreadyConfirmed, IpnFailChecksum, IpnInvalidAmount, IpnOrderNo
 
 @Injectable()
 export class VNPayService {
+    private readonly logger = new Logger(VNPayService.name);
     constructor(
         private readonly vnpayService: VnpayService,
         @InjectRepository(User) private readonly userRepository: Repository<User>,
@@ -54,7 +56,7 @@ export class VNPayService {
             throw new ApplicationException(HttpStatus.BAD_REQUEST, 'Amount must be greater than 0');
         }
 
-        const expiredAt = moment().add(30, 'minutes').toDate();
+        const expiredAt = moment().add(7, 'hours').add(30, 'minutes').toDate();
         const randomTxnRef = StringUtils.randomGenerateString(16);
 
         const paymentUrl = this.vnpayService.buildPaymentUrl({
@@ -86,12 +88,15 @@ export class VNPayService {
 
     async handleIPN(req, res) {
         try {
+            console.log('IPN request received:', req.query);
             const verify: VerifyReturnUrl = await this.vnpayService.verifyIpnCall(req.query);
             if (!verify.isVerified) {
+                this.logger.error(`IPN verification failed: ${JSON.stringify(req.query)}`);
                 return res.json(IpnFailChecksum);
             }
 
             if (!verify.isSuccess) {
+                this.logger.error(`IPN payment failed: ${JSON.stringify(req.query)}`);
                 return res.json(IpnUnknownError);
             }
 
@@ -104,16 +109,19 @@ export class VNPayService {
 
             // Nếu không tìm thấy đơn hàng hoặc mã đơn hàng không khớp
             if (!foundOrder || verify.vnp_TxnRef !== foundOrder.txnRef) {
+                this.logger.error(`Order not found or mismatch: ${verify.vnp_TxnRef}`);
                 return res.json(IpnOrderNotFound);
             }
 
             // Nếu số tiền thanh toán không khớp
             if (verify.vnp_Amount !== foundOrder.denomination.value) {
+                this.logger.error(`Invalid amount: expected ${foundOrder.denomination.value}, got ${verify.vnp_Amount}`);
                 return res.json(IpnInvalidAmount);
             }
 
             // Nếu đơn hàng đã được xác nhận trước đó
             if (foundOrder.status === EnumOrderStatus.COMPLETED || foundOrder.status === EnumOrderStatus.CLAIMED_VOUCHER) {
+                this.logger.warn(`Order already confirmed: ${foundOrder.txnRef}`);
                 return res.json(InpOrderAlreadyConfirmed);
             }
 
@@ -128,26 +136,49 @@ export class VNPayService {
             });
 
             if (!user) {
+                this.logger.error(`User not found for order: ${foundOrder.txnRef}`);
                 return res.json(IpnUnknownError);
             }
 
+            this.logger.log(`Processing order: ${foundOrder.txnRef} for user: ${user.id}`);
             await this.voucherQueue.add('buy', {
                 orderId: foundOrder.id,
                 toWalletAddress: user.walletAddress,
                 amountVnd: foundOrder.denomination.value,
             })
+            this.logger.log(`Order ${foundOrder.txnRef} processed successfully for user: ${user.id}`);
 
             await this.orderRepository.save(foundOrder);
 
             // Sau đó cập nhật trạng thái trở lại cho VNPay để họ biết bạn đã xác nhận đơn hàng
             return res.json(IpnSuccess);
         } catch (error) {
-            /**
-             * Xử lý các ngoại lệ
-             * Ví dụ: dữ liệu không đủ, dữ liệu không hợp lệ, lỗi cập nhật cơ sở dữ liệu
-             */
-            console.log(`verify error: ${error}`);
+            this.logger.error(`IPN handling error: ${error.message}`, error.stack);
             return res.json(IpnUnknownError);
+        }
+    }
+
+    async verifyReturnUrl(req, res) {
+        try {
+            const verify = await this.vnpayService.verifyReturnUrl(req.query);
+            if (!verify.isVerified) {
+                return res.send('Data integrity verification failed');
+            }
+            if (!verify.isSuccess) {
+                return res.send('Payment order failed');
+            }
+
+            const htmlFormat = `
+            <h3>Payment Verification Successful</h3>
+            <p>Transaction Reference: ${verify.vnp_TxnRef}</p>
+            <p>Amount: ${parseInt(verify.vnp_Amount.toString()).toLocaleString("vi-VN")} VND</p>
+            <p>Now you can return to the application.</p>
+            <p>Please wait for the system to process your order.</p>
+            `
+
+            return res.send(htmlFormat);
+        } catch (error) {
+            return res.send('Invalid data');
         }
     }
 }

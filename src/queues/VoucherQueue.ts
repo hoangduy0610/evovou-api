@@ -12,6 +12,7 @@ export class VoucherQueue {
     async buyVoucher(job: Job<{ orderId: number, toWalletAddress: string, amountVnd: number }>) {
         const { data } = job;
         const { toWalletAddress, amountVnd, orderId } = data;
+        console.log('Processing buy voucher job:', data);
         await this.blockchainService.generateVoucherToAddress(
             orderId,
             toWalletAddress,
