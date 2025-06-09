@@ -7,6 +7,7 @@ import { envFiles } from './commons/Constant';
 import { join } from 'path';
 import { existsSync, mkdirSync } from 'fs';
 import * as express from 'express';
+import { json, urlencoded } from 'express';
 
 require('dotenv').config(envFiles);
 
@@ -19,6 +20,8 @@ async function bootstrap() {
   if (!existsSync(uploadDir)) {
     mkdirSync(uploadDir);
   }
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ limit: '50mb', extended: true }));
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
   app.use('/swagger-ui.html', basicAuth({

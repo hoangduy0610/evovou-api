@@ -20,6 +20,8 @@ export class ForumService {
             relations: [
                 'author',
                 'voucher',
+                'voucher.owner',
+                'voucher.denomination',
                 'forumInteractions',
                 'forumInteractions.user',
                 'forumComments',

@@ -1,4 +1,4 @@
-import { User_CreateDto, User_UpdateDto } from '@/dtos/User_Dtos';
+import { User_CreateDto, User_UpdateDto, User_UpdateMeDto } from '@/dtos/User_Dtos';
 import { EnumRoles } from '@/enums/EnumRoles';
 import { Role } from '@/guards/RoleDecorator';
 import { RoleGuard } from '@/guards/RoleGuard';
@@ -37,6 +37,11 @@ export class UserController {
     @Role([EnumRoles.ROLE_ADMIN])
     async findById(@Req() req, @Res() res, @Param('id') id: number) {
         return res.status(HttpStatus.OK).json(await this.userService.findOne(id));
+    }
+
+    @Put('/me')
+    async updateMe(@Req() req, @Res() res, @Body() dto: User_UpdateMeDto) {
+        return res.status(HttpStatus.OK).json(await this.userService.update(req.user, req.user.id, dto));
     }
 
     @Put('/:id')

@@ -72,7 +72,7 @@ export class UserService {
         }
     }
 
-    async update(reqUser: any, id: number, dto: User_UpdateDto): Promise<User> {
+    async update(reqUser: any, id: number, dto: Partial<User_UpdateDto>): Promise<User> {
         if (reqUser.role !== EnumRoles.ROLE_ADMIN && reqUser.id !== id) {
             throw new ApplicationException(HttpStatus.UNAUTHORIZED, MessageCode.USER_UPDATE_ERROR);
         }

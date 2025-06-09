@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseSoftDelete } from '../base';
 import { User } from './User.entity';
 import { Voucher } from './Voucher.entity';
@@ -21,6 +21,7 @@ export class ForumPost extends BaseSoftDelete {
     userId: number;
 
     @ManyToOne(() => User, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
     author: User;
 
     @OneToMany(() => ForumInteraction, (interaction) => interaction.post, { cascade: true })
